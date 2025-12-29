@@ -72,7 +72,8 @@ JSON_LOG_FILE="$PGDATA/log/postgresql.json"
         sleep 1
     done
     # Tail the JSON log file to stderr for Railway log capture
-    exec tail -F "$JSON_LOG_FILE" >&2
+    # 2>/dev/null suppresses "file truncated" and "following new file" messages
+    exec tail -F "$JSON_LOG_FILE" 2>/dev/null >&2
 ) &
 
 # Call the entrypoint script with the
