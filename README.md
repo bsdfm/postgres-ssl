@@ -16,37 +16,17 @@ This fork adds JSON structured logging configuration to PostgreSQL (15+), making
 
 ### JSON Logging Configuration
 
-The following settings are automatically applied:
+Only the minimal settings required for JSON logging are applied. All other logging behavior (what gets logged, verbosity, etc.) remains at PostgreSQL defaults:
 
 ```ini
-logging_collector = on
-log_destination = 'jsonlog'
-log_directory = 'log'
-log_filename = 'postgresql.json'
-log_rotation_age = 0
-log_rotation_size = 1MB
-log_truncate_on_rotation = on
-
-log_connections = on
-log_disconnections = on
-log_duration = off
-log_statement = 'ddl'
-log_min_duration_statement = 1000
-log_min_messages = 'warning'
-log_min_error_statement = 'error'
-log_timezone = 'UTC'
+logging_collector = on          # Required for jsonlog destination
+log_destination = 'jsonlog'     # Output JSON format
+log_directory = 'log'           # Log file directory
+log_filename = 'postgresql.json' # Fixed filename for tail -F
+log_rotation_age = 0            # No time-based rotation
+log_rotation_size = 1MB         # Truncate at 1MB
+log_truncate_on_rotation = on   # Overwrite on rotation
 ```
-
-### What Gets Logged
-
-| Setting | Effect |
-|---------|--------|
-| `log_connections = on` | Log each new connection |
-| `log_disconnections = on` | Log session terminations |
-| `log_statement = 'ddl'` | Log DDL statements (CREATE, ALTER, DROP) |
-| `log_min_duration_statement = 1000` | Log queries taking >1 second |
-| `log_min_messages = 'warning'` | Minimum severity for general logs |
-| `log_min_error_statement = 'error'` | Log SQL for errors and above |
 
 ### JSON Log Output
 

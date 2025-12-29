@@ -77,14 +77,6 @@ log_filename = 'postgresql.json'
 log_rotation_age = 0
 log_rotation_size = 1MB
 log_truncate_on_rotation = on
-log_connections = on
-log_disconnections = on
-log_duration = off
-log_statement = 'ddl'
-log_min_duration_statement = 1000
-log_min_messages = 'warning'
-log_min_error_statement = 'error'
-log_timezone = 'UTC'
 LOGGING_EOF
 fi
 
