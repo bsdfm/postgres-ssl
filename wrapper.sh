@@ -80,24 +80,36 @@ log_truncate_on_rotation = on
 LOGGING_EOF
 fi
 
-# Start a background process to tail JSON logs to stderr for Railway
-# Uses tail -F to follow by name (handles file rotation/recreation)
-# Runs in background so PostgreSQL can start normally
-(
-    # Wait for log directory and file to be created by PostgreSQL
-    while [ ! -f "$JSON_LOG_FILE" ]; do
-        sleep 1
-    done
-    # Tail the JSON log file to stderr for Railway log capture
-    # 2>/dev/null suppresses "file truncated" and "following new file" messages
-    exec tail -F "$JSON_LOG_FILE" 2>/dev/null >&2
-) &
+# Start PostgreSQL in background, then tail logs in foreground
+# This ensures tail output is captured by Railway as the main process
+/usr/local/bin/docker-entrypoint.sh "$@" &
+POSTGRES_PID=$!
 
-# Call the entrypoint script with the
-# appropriate PGHOST & PGPORT and redirect
-# the output to stdout if LOG_TO_STDOUT is true
-if [[ "$LOG_TO_STDOUT" == "true" ]]; then
-    /usr/local/bin/docker-entrypoint.sh "$@" 2>&1
-else
-    /usr/local/bin/docker-entrypoint.sh "$@"
-fi
+# Wait for log file to be created, then tail it
+echo "Waiting for PostgreSQL log file..."
+while [ ! -f "$JSON_LOG_FILE" ]; do
+    # Check if postgres is still running
+    if ! kill -0 $POSTGRES_PID 2>/dev/null; then
+        echo "PostgreSQL process exited unexpectedly"
+        wait $POSTGRES_PID
+        exit $?
+    fi
+    sleep 1
+done
+
+echo "Tailing JSON logs from $JSON_LOG_FILE"
+# Tail in foreground - this becomes the main process Railway monitors
+# Use trap to forward signals to postgres
+trap "kill $POSTGRES_PID 2>/dev/null; wait $POSTGRES_PID; exit" SIGTERM SIGINT SIGQUIT
+
+tail -F "$JSON_LOG_FILE" 2>/dev/null &
+TAIL_PID=$!
+
+# Wait for postgres to exit
+wait $POSTGRES_PID
+POSTGRES_EXIT=$?
+
+# Clean up tail
+kill $TAIL_PID 2>/dev/null
+
+exit $POSTGRES_EXIT
