@@ -109,11 +109,17 @@ while [ ! -f "$JSON_LOG_FILE" ]; do
 done
 
 echo "Tailing JSON logs from $JSON_LOG_FILE"
+echo "Log file size: $(wc -c < "$JSON_LOG_FILE") bytes"
+echo "Log file contents (first 500 chars):"
+head -c 500 "$JSON_LOG_FILE" || echo "(empty or error reading)"
+echo "---"
+
 # Tail in foreground - this becomes the main process Railway monitors
 # Use trap to forward signals to postgres
 trap "kill $POSTGRES_PID 2>/dev/null; wait $POSTGRES_PID; exit" SIGTERM SIGINT SIGQUIT
 
-tail -F "$JSON_LOG_FILE" 2>/dev/null &
+# Run tail without suppressing stderr to see any errors
+tail -F "$JSON_LOG_FILE" &
 TAIL_PID=$!
 
 # Wait for postgres to exit
