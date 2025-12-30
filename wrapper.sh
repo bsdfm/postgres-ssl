@@ -65,7 +65,7 @@ JSON_LOG_FILE="$PGDATA/log/postgresql.json"
 
 # Ensure JSON logging is configured in postgresql.conf (for existing databases)
 # init-ssl.sh only runs on first init, so we need to add config for existing DBs
-if [ -f "$POSTGRES_CONF_FILE" ] && ! grep -q "^logging_collector = on" "$POSTGRES_CONF_FILE"; then
+if [ -f "$POSTGRES_CONF_FILE" ] && ! grep -q "^log_connections = on" "$POSTGRES_CONF_FILE"; then
     echo "Adding JSON logging configuration to postgresql.conf..."
     cat >> "$POSTGRES_CONF_FILE" <<'LOGGING_EOF'
 
