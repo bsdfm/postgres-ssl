@@ -109,9 +109,12 @@ while [ ! -f "$JSON_LOG_FILE" ]; do
 done
 
 echo "Tailing JSON logs from $JSON_LOG_FILE"
-echo "Log file size: $(wc -c < "$JSON_LOG_FILE") bytes"
-echo "Log file contents (first 500 chars):"
-head -c 500 "$JSON_LOG_FILE" || echo "(empty or error reading)"
+echo "PGDATA=$PGDATA"
+echo "Log directory contents:"
+ls -la "$PGDATA/log/" 2>&1 || echo "(error listing)"
+echo "Log file size: $(wc -c < "$JSON_LOG_FILE" 2>&1) bytes"
+echo "Checking postgresql.conf for logging settings:"
+grep -E "^(logging_collector|log_destination|log_directory|log_filename|log_connections)" "$POSTGRES_CONF_FILE" | tail -10
 echo "---"
 
 # Tail in foreground - this becomes the main process Railway monitors
