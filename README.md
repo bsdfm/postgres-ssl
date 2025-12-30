@@ -22,7 +22,7 @@ The following settings are applied for JSON logging with minimal useful visibili
 logging_collector = on          # Required for jsonlog destination
 log_destination = 'jsonlog'     # Output JSON format
 log_directory = 'log'           # Log file directory
-log_filename = 'postgresql.json' # Fixed filename for tail -F
+log_filename = 'postgresql'     # PostgreSQL appends .json automatically
 log_rotation_age = 0            # No time-based rotation
 log_rotation_size = 1MB         # Truncate at 1MB
 log_truncate_on_rotation = on   # Overwrite on rotation

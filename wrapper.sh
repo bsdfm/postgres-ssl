@@ -65,7 +65,8 @@ JSON_LOG_FILE="$PGDATA/log/postgresql.json"
 
 # Ensure JSON logging is configured in postgresql.conf (for existing databases)
 # init-ssl.sh only runs on first init, so we need to add config for existing DBs
-if [ -f "$POSTGRES_CONF_FILE" ] && ! grep -q "^log_connections = on" "$POSTGRES_CONF_FILE"; then
+# Check for our specific config marker (log_filename = 'postgresql' without .json)
+if [ -f "$POSTGRES_CONF_FILE" ] && ! grep -q "^log_filename = 'postgresql'$" "$POSTGRES_CONF_FILE"; then
     echo "Adding JSON logging configuration to postgresql.conf..."
     cat >> "$POSTGRES_CONF_FILE" <<'LOGGING_EOF'
 
@@ -73,7 +74,7 @@ if [ -f "$POSTGRES_CONF_FILE" ] && ! grep -q "^log_connections = on" "$POSTGRES_
 logging_collector = on
 log_destination = 'jsonlog'
 log_directory = 'log'
-log_filename = 'postgresql.json'
+log_filename = 'postgresql'
 log_rotation_age = 0
 log_rotation_size = 1MB
 log_truncate_on_rotation = on
@@ -109,20 +110,12 @@ while [ ! -f "$JSON_LOG_FILE" ]; do
 done
 
 echo "Tailing JSON logs from $JSON_LOG_FILE"
-echo "PGDATA=$PGDATA"
-echo "Log directory contents:"
-ls -la "$PGDATA/log/" 2>&1 || echo "(error listing)"
-echo "Log file size: $(wc -c < "$JSON_LOG_FILE" 2>&1) bytes"
-echo "Checking postgresql.conf for logging settings:"
-grep -E "^(logging_collector|log_destination|log_directory|log_filename|log_connections)" "$POSTGRES_CONF_FILE" | tail -10
-echo "---"
 
-# Tail in foreground - this becomes the main process Railway monitors
-# Use trap to forward signals to postgres
+# Tail in foreground - forward signals to postgres
 trap "kill $POSTGRES_PID 2>/dev/null; wait $POSTGRES_PID; exit" SIGTERM SIGINT SIGQUIT
 
-# Run tail without suppressing stderr to see any errors
-tail -F "$JSON_LOG_FILE" &
+# Tail log file, suppress "file truncated" messages
+tail -F "$JSON_LOG_FILE" 2>/dev/null &
 TAIL_PID=$!
 
 # Wait for postgres to exit

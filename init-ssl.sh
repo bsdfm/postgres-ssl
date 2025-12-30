@@ -65,7 +65,7 @@ cat >> "$POSTGRES_CONF_FILE" <<EOF
 logging_collector = on
 log_destination = 'jsonlog'
 log_directory = 'log'
-log_filename = 'postgresql.json'
+log_filename = 'postgresql'
 log_rotation_age = 0
 log_rotation_size = 1MB
 log_truncate_on_rotation = on
