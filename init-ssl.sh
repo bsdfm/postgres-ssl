@@ -69,4 +69,9 @@ log_filename = 'postgresql.json'
 log_rotation_age = 0
 log_rotation_size = 1MB
 log_truncate_on_rotation = on
+
+# Minimal useful logging
+log_connections = on
+log_disconnections = on
+log_min_duration_statement = 1000
 EOF

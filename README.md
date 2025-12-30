@@ -16,7 +16,7 @@ This fork adds JSON structured logging configuration to PostgreSQL (15+), making
 
 ### JSON Logging Configuration
 
-Only the minimal settings required for JSON logging are applied. All other logging behavior (what gets logged, verbosity, etc.) remains at PostgreSQL defaults:
+The following settings are applied for JSON logging with minimal useful visibility:
 
 ```ini
 logging_collector = on          # Required for jsonlog destination
@@ -26,6 +26,11 @@ log_filename = 'postgresql.json' # Fixed filename for tail -F
 log_rotation_age = 0            # No time-based rotation
 log_rotation_size = 1MB         # Truncate at 1MB
 log_truncate_on_rotation = on   # Overwrite on rotation
+
+# Minimal useful logging
+log_connections = on            # Log new connections
+log_disconnections = on         # Log session ends
+log_min_duration_statement = 1000  # Log slow queries (>1s)
 ```
 
 ### JSON Log Output

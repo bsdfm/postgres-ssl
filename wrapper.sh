@@ -77,7 +77,18 @@ log_filename = 'postgresql.json'
 log_rotation_age = 0
 log_rotation_size = 1MB
 log_truncate_on_rotation = on
+
+# Minimal useful logging
+log_connections = on
+log_disconnections = on
+log_min_duration_statement = 1000
 LOGGING_EOF
+fi
+
+# Clear old log file to start fresh (may contain old text-format logs)
+if [ -f "$JSON_LOG_FILE" ]; then
+    echo "Clearing old log file for fresh JSON logging..."
+    > "$JSON_LOG_FILE"
 fi
 
 # Start PostgreSQL in background, then tail logs in foreground
